@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tabunganku · Cerdas</title>
+  <!-- Font & Icons (non-emoji) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Library QR -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none; /* teks tidak bisa dicopy */
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f6f8fa;
+      color: #1e2b37;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* welcome screen full */
+    #welcome-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #f0f4f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      transition: opacity 0.5s ease;
+    }
+    .welcome-card {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 36px;
+      padding: 2.5rem 2rem;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 40px rgba(0,10,20,0.08);
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    .welcome-card h2 {
+      font-weight: 500;
+      font-size: 1.8rem;
+      letter-spacing: -0.02em;
+      color: #1e3b4f;
+      margin-bottom: 1rem;
+    }
+    .welcome-card p {
+      color: #3a5365;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+    .welcome-card input {
+      width: 100%;
+      padding: 1rem 1.2rem;
+      border: none;
+      background: #ffffffd9;
+      border-radius: 60px;
+      font-size: 1rem;
+      color: #1a2b36;
+      outline: 1px solid #d0ddee;
+      transition: all 0.2s;
+    }
+    .welcome-card input:focus {
+      outline: 2px solid #8da9c9;
+    }
+    .btn-mulai {
+      margin-top: 2rem;
+      background: #2c4c6b;
+      color: white;
+      border: none;
+      border-radius: 60px;
+      padding: 1rem 2.5rem;
+      font-size: 1.1rem;
+      font-weight: 500;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 6px 14px rgba(35, 65, 95, 0.25);
+    }
+    .btn-mulai:hover {
+      background: #1f3e58;
+    }
+    /* main app */
+    #app {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      background: #ffffffd9;
+      backdrop-filter: blur(4px);
+      border-radius: 32px 32px 0 0;
+      box-shadow: 0 0 40px rgba(0,0,0,0.02);
+      min-height: 95vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #ffffff;
+    }
+    /* header */
+    .app-header {
+      padding: 1.2rem 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #eef3f9;
+    }
+    .menu-icon {
+      font-size: 1.8rem;
+      color: #2f4b6e;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 48px; height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    .menu-icon:hover {
+      background: #e7edf6;
+    }
+    .header-title {
+      font-weight: 500;
+      font-size: 1.3rem;
+      color: #1d3b4f;
+      letter-spacing: -0.3px;
+    }
+    .header-placeholder {
+      width: 48px;
+    }
+    /* menu dropdown animasi */
+    .menu-dropdown {
+      position: absolute;
+      top: 85px;
+      left: 1.5rem;
+      background: #ffffffef;
+      backdrop-filter: blur(8px);
+      border-radius: 32px;
+      box-shadow: 0 20px 40px rgba(0, 20, 40, 0.12);
+      padding: 1rem 0;
+      width: 240px;
+      border: 1px solid #ffffff;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(-20px);
+      pointer-events: none;
+      transition: 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .menu-dropdown.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.9rem 1.8rem;
+      color: #1e3a4a;
+      font-size: 1rem;
+      font-weight: 450;
+      transition: 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .menu-item i {
+      width: 24px;
+      font-size: 1.2rem;
+      color: #3d637f;
+    }
+    .menu-item:hover {
+      background: #e1ecf9;
+      border-left-color: #2f5575;
+    }
+    /* konten utama */
+    .main-content {
+      flex: 1;
+      padding: 1.8rem 1.5rem 1rem;
+      overflow-y: auto;
+      min-height: 60vh;
+    }
+    /* footer jam */
+    .app-footer {
+      padding: 1rem 1.8rem 1.2rem;
+      border-top: 1px solid #ecf3fa;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: #6a7f94;
+      background: #ffffff;
+    }
+    .time-place {
+      display: flex;
+      gap: 1rem;
+    }
+    /* kartu target */
+    .target-card {
+      background: #fbfdff;
+      border-radius: 28px;
+      padding: 1.6rem 1.2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 6px 16px #e9f0f8;
+      border: 1px solid #dde7f0;
+    }
+    .target-header {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .target-img {
+      width: 70px;
+      height: 70px;
+      border-radius: 24px;
+      background: #eaf1fa;
+      object-fit: cover;
+      border: 2px solid white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+    }
+    .target-nama {
+      font-weight: 600;
+      font-size: 1.3rem;
+      color: #142b3b;
+    }
+    .target-angka {
+      margin: 0.8rem 0;
+    }
+    .progress-bg {
+      background: #deeaf5;
+      height: 18px;
+      border-radius: 40px;
+      overflow: hidden;
+      margin: 0.5rem 0 1rem;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4f8bc9, #2f6f9f);
+      width: 0%;
+      border-radius: 40px;
+      transition: width 0.3s ease;
+    }
+    .row-nominal {
+      display: flex;
+      justify-content: space-between;
+      color: #1e405d;
+      font-weight: 500;
+    }
+    .tombol-uang {
+      display: flex;
+      gap: 1rem;
+      margin: 1.5rem 0 0.8rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-uang {
+      background: #e6f0fa;
+      border: none;
+      border-radius: 50px;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #1b4a6b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+      flex: 1 1 auto;
+    }
+    .btn-uang i { font-size: 1rem; }
+    .btn-uang input {
+      width: 80px;
+      border: none;
+      background: white;
+      padding: 0.5rem;
+      border-radius: 30px;
+      text-align: center;
+      font-family: inherit;
+      outline: 1px solid #b9d3f0;
+    }
+    .btn-uang input:focus { outline: 2px solid #769dc9; }
+    .log-transaksi {
+      font-size: 0.8rem;
+      color: #5b748b;
+      border-top: 1px dashed #cbdae9;
+      padding-top: 0.8rem;
+      margin-top: 0.5rem;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .log-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.3rem 0;
+    }
+    /* form tambah target */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #2b4b68;
+      font-weight: 500;
+    }
+    .form-control {
+      width: 100%;
+      padding: 1rem;
+      background: #f3f9ff;
+      border: 1px solid #dbe3ef;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    .file-upload {
+      background: #eef5fc;
+      border-radius: 40px;
+      padding: 0.8rem 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      cursor: pointer;
+      border: 1px dashed #a0bedb;
+      margin-top: 0.5rem;
+    }
+    .file-upload i { font-size: 1.4rem; color: #2b557a; }
+    .preview-img {
+      width: 80px; height: 80px;
+      border-radius: 24px;
+      object-fit: cover;
+      margin-top: 1rem;
+      border: 2px solid white;
+      background: #d5e4f5;
+    }
+    /* edit profile */
+    .profile-display {
+      text-align: center;
+      background: #f3f9ff;
+      border-radius: 40px;
+      padding: 2rem 1rem;
+    }
+    .profile-avatar {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: #c7dcf5;
+      margin: 0 auto 1rem;
+      object-fit: cover;
+      border: 4px solid white;
+    }
+    .profile-nama {
+      font-size: 1.7rem;
+      font-weight: 500;
+      color: #153c51;
+    }
+    .profile-tgl {
+      color: #55718d;
+    }
+    .btn-edit-kecil {
+      background: transparent;
+      border: 1px solid #aec9e5;
+      border-radius: 40px;
+      padding: 0.5rem 1.8rem;
+      margin-top: 1rem;
+      color: #2d577b;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* popup profile longpress */
+    .profile-popup {
+      position: fixed;
+      bottom: 30px; left: 20px; right: 20px;
+      background: white;
+      border-radius: 48px;
+      padding: 1.5rem;
+      box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+      border: 1px solid #e4eefa;
+      z-index: 300;
+      display: none;
+      align-items: center;
+      gap: 1rem;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    .profile-popup.show-popup { display: flex; }
+    .popup-close {
+      margin-left: auto;
+      font-size: 1.5rem;
+      color: #738fa8;
+      cursor: pointer;
+    }
+    /* QR */
+    .qr-container {
+      background: white;
+      border-radius: 40px;
+      padding: 2rem;
+      text-align: center;
+    }
+    .qr-canvas {
+      max-width: 100%;
+      margin: 1rem 0;
+      border-radius: 24px;
+    }
+    .btn-download {
+      background: #e2eefa;
+      border: none;
+      border-radius: 50px;
+      padding: 0.8rem 2rem;
+      cursor: pointer;
+      color: #1d4b73;
+      font-weight: 500;
+    }
+    /* hide class */
+    .hidden { display: none !important; }
+    /* responsif */
+    @media (max-width: 480px) {
+      .app-header { padding: 1rem; }
+      .main-content { padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- WELCOME SCREEN (hanya sekali) -->
+  <div id="welcome-screen">
+    <div class="welcome-card">
+      <h2>✧ Selamat datang</h2>
+      <p>Apa alasan kamu menggunakan website ini?</p>
+      <input type="text" id="alasan-input" placeholder="cth: ingin beli kamera..." autocomplete="off">
+      <div class="btn-mulai" id="mulaiBtn">Mulai menabung</div>
+    </div>
+  </div>
+
+  <!-- APP UTAMA -->
+  <div id="app" class="hidden">
+    <div class="app-header">
+      <div class="menu-icon" id="menuToggle"><i class="fas fa-bars"></i></div>
+      <span class="header-title">Tabunganku</span>
+      <div class="header-placeholder"></div>
+    </div>
+
+    <!-- menu dropdown -->
+    <div class="menu-dropdown" id="menuDropdown">
+      <div class="menu-item" data-menu="beranda"><i class="fas fa-home"></i> Beranda</div>
+      <div class="menu-item" data-menu="tambahtarget"><i class="fas fa-plus-circle"></i> Tambah Target</div>
+      <div class="menu-item" data-menu="tercapai"><i class="fas fa-trophy"></i> Tercapai</div>
+      <div class="menu-item" data-menu="gagal"><i class="fas fa-clock"></i> Gagal</div>
+      <div class="menu-item" data-menu="kalkulator"><i class="fas fa-calculator"></i> Kalkulator</div>
+      <div class="menu-item" data-menu="editprofile" id="editProfileMenuItem"><i class="fas fa-user-pen"></i> Edit Profile</div>
+      <div class="menu-item" data-menu="pembuat"><i class="fas fa-code"></i> Profile Pembuat</div>
+      <div class="menu-item" data-menu="qrgen"><i class="fas fa-qrcode"></i> QR Generator</div>
+      <div class="menu-item" data-menu="scanqr"><i class="fas fa-camera"></i> Scan QR</div>
+    </div>
+
+    <!-- area konten dinamis -->
+    <div class="main-content" id="mainContent"></div>
+
+    <!-- footer jam realtime -->
+    <div class="app-footer">
+      <span id="realDate"></span>
+      <span class="time-place" id="realTime"></span>
+    </div>
+  </div>
+
+  <!-- POPUP PROFILE (longpress) -->
+  <div class="profile-popup" id="profilePopup">
+    <img id="popupAvatar" src="" alt="" style="width: 50px; height:50px; border-radius:40px; object-fit:cover;">
+    <div><span id="popupName"></span><br><span id="popupBirth"></span></div>
+    <div class="popup-close" id="closePopup"><i class="fas fa-times"></i></div>
+  </div>
+
+  <script>
+    (function() {
+      // ======================== DATA & LOCALSTORAGE =======================
+      let profile = JSON.parse(localStorage.getItem('tabungan_profile')) || { name: '', birth: '', photo: '' };
+      let targets = JSON.parse(localStorage.getItem('tabungan_targets')) || [];        // aktif
+      let achieved = JSON.parse(localStorage.getItem('tabungan_achieved')) || [];      // berhasil
+      let failed = JSON.parse(localStorage.getItem('tabungan_failed')) || [];          // gagal (1 tahun)
+      let welcomeDone = localStorage.getItem('welcome_done') === 'true';
+
+      // ======================== HELPER =======================
+      function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID').format(angka);
+      }
+
+      // cek target kadaluarsa > 1 tahun (365 hari)
+      function cekKadaluarsa() {
+        const now = Date.now();
+        const satuTahun = 365 * 24 * 60 * 60 * 1000;
+        const masihAktif = [];
+        for (let t of targets) {
+          if (now - t.createdAt > satuTahun) {
+            failed.push({ ...t, gagalPada: now });
+          } else {
+            masihAktif.push(t);
+          }
+        }
+        targets = masihAktif;
+        localStorage.setItem('tabungan_targets', JSON.stringify(targets));
+        localStorage.setItem('tabungan_failed', JSON.stringify(failed));
+      }
+      cekKadaluarsa(); // panggil awal
+
+      // simpan semua
+      function simpanTarget() {
+        localStorage.setItem('tabungan_targets', JSON.stringify(targets));
+        localStorage.setItem('tabungan_achieved', JSON.stringify(achieved));
+        localStorage.setItem('tabungan_failed', JSON.stringify(failed));
+      }
+
+      // ======================== WELCOME =======================
+      if (welcomeDone) {
+        document.getElementById('welcome-screen').style.display = 'none';
+        document.getElementById('app').classList.remove('hidden');
+      } else {
+        document.getElementById('welcome-screen').style.display = 'flex';
+      }
+
+      document.getElementById('mulaiBtn').addEventListener('click', () => {
+        const alasan = document.getElementById('alasan-input').value.trim() || 'ingin menabung';
+        localStorage.setItem('alasan_user', alasan);
+        localStorage.setItem('welcome_done', 'true');
+        document.getElementById('welcome-screen').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('welcome-screen').style.display = 'none';
+          document.getElementById('app').classList.remove('hidden');
+        }, 400);
+      });
+
+      // ======================== JAM REAL TIME =======================
+      function updateDateTime() {
+        const now = new Date();
+        document.getElementById('realDate').innerText = now.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+        document.getElementById('realTime').innerText = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+      }
+      setInterval(updateDateTime, 1000);
+      updateDateTime();
+
+      // ======================== MENU TOGGLE + ANIMASI =======================
+      const menuToggle = document.getElementById('menuToggle');
+      const menuDropdown = document.getElementById('menuDropdown');
+      menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuDropdown.classList.toggle('show');
+      });
+      document.addEventListener('click', (e) => {
+        if (!menuDropdown.contains(e.target) && !menuToggle.contains(e.target)) {
+          menuDropdown.classList.remove('show');
+        }
+      });
+
+      // ======================== RENDER KONTEN BERDASARKAN MENU =======================
+      const contentDiv = document.getElementById('mainContent');
+
+      function renderMenu(menuId) {
+        menuDropdown.classList.remove('show');
+        if (menuId === 'beranda') renderBeranda();
+        else if (menuId === 'tambahtarget') renderTambahTarget();
+        else if (menuId === 'tercapai') renderTercapai();
+        else if (menuId === 'gagal') renderGagal();
+        else if (menuId === 'kalkulator') renderKalkulator();
+        else if (menuId === 'editprofile') renderEditProfile();
+        else if (menuId === 'pembuat') renderPembuat();
+        else if (menuId === 'qrgen') renderQRGenerator();
+        else if (menuId === 'scanqr') renderScanQR();
+      }
+
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          const menu = item.dataset.menu;
+          if (menu) renderMenu(menu);
+        });
+      });
+
+      // default render beranda
+      renderMenu('beranda');
+
+      // ======================== BERANDA (daftar target aktif) =======================
+      function renderBeranda() {
+        if (targets.length === 0) {
+          contentDiv.innerHTML = `<div style="text-align:center; margin-top:4rem; color:#6f8aa5;"><i class="fas fa-piggy-bank" style="font-size:3rem; opacity:0.5;"></i><p style="margin-top:1rem;">Belum ada target. Yuk tambah target!</p></div>`;
+          return;
+        }
+        let html = '';
+        targets.forEach(t => {
+          const persen = Math.min(100, (t.terkumpul / t.targetNominal) * 100);
+          html += `<div class="target-card" data-id="${t.id}">
+            <div class="target-header">
+              <img src="${t.foto || 'https://via.placeholder.com/70?text=target'}" class="target-img" onerror="this.src='https://via.placeholder.com/70?text=img'">
+              <span class="target-nama">${t.nama}</span>
+            </div>
+            <div class="target-angka">
+              <div class="row-nominal"><span>Rp ${formatRupiah(t.terkumpul)}</span> <span>Rp ${formatRupiah(t.targetNominal)}</span></div>
+              <div class="progress-bg"><div class="progress-fill" style="width:${persen}%;"></div></div>
+            </div>
+            <div class="tombol-uang">
+              <div class="btn-uang"><i class="fas fa-plus"></i> <input type="number" id="inp-${t.id}" placeholder="nominal" min="1" value="10000"></div>
+              <button class="btn-uang" onclick="tambahUang('${t.id}')"><i class="fas fa-arrow-up"></i> Tambah</button>
+              <button class="btn-uang" onclick="kurangUang('${t.id}')"><i class="fas fa-arrow-down"></i> Kurang</button>
+            </div>
+            <div class="log-transaksi" id="log-${t.id}">${(t.transaksi || []).slice().reverse().map(l => `<div class="log-item"><span>${l.tipe === 'tambah' ? '➕' : '🔻'} Rp ${formatRupiah(l.jumlah)}</span><span>${new Date(l.waktu).toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})}</span></div>`).join('')}</div>
+          </div>`;
+        });
+        contentDiv.innerHTML = html;
+      }
+
+      // fungsi global tambah/kurang
+      window.tambahUang = (id) => {
+        const target = targets.find(t => t.id === id);
+        if (!target) return;
+        const inp = document.getElementById(`inp-${id}`);
+        const nominal = parseInt(inp.value, 10);
+        if (isNaN(nominal) || nominal <= 0) return;
+        target.terkumpul += nominal;
+        if (!target.transaksi) target.transaksi = [];
+        target.transaksi.push({ jumlah: nominal, tipe: 'tambah', waktu: Date.now() });
+        if (target.terkumpul >= target.targetNominal) {
+          // tercapai!
+          achieved.push({ ...target, tercapaiPada: Date.now() });
+          targets = targets.filter(t => t.id !== id);
+          simpanTarget();
+          alert('🎉 Selamat! Target tercapai! Terima kasih menabung di Tabunganku Pintar');
+          renderBeranda();
+        } else {
+          simpanTarget();
+          renderBeranda();
+        }
+      };
+      window.kurangUang = (id) => {
+        const target = targets.find(t => t.id === id);
+        if (!target) return;
+        const inp = document.getElementById(`inp-${id}`);
+        const nominal = parseInt(inp.value, 10);
+        if (isNaN(nominal) || nominal <= 0) return;
+        if (target.terkumpul - nominal < 0) {
+          alert('Tabungan tidak cukup');
+          return;
+        }
+        target.terkumpul -= nominal;
+        if (!target.transaksi) target.transaksi = [];
+        target.transaksi.push({ jumlah: nominal, tipe: 'kurang', waktu: Date.now() });
+        simpanTarget();
+        renderBeranda();
+      };
+
+      // ======================== TAMBAH TARGET =======================
+      function renderTambahTarget() {
+        contentDiv.innerHTML = `
+          <h3 style="margin-bottom:1.5rem;"><i class="fas fa-bullseye"></i> Target Baru</h3>
+          <div class="form-group"><label>Nama target</label><input class="form-control" id="targetNama" placeholder="contoh: Laptop"></div>
+          <div class="form-group"><label>Target nominal (Rp)</label><input class="form-control" type="number" id="targetNominal" placeholder="1000000"></div>
+          <div class="form-group"><label>Foto target</label>
+            <div class="file-upload" id="uploadTrigger"><i class="fas fa-cloud-upload-alt"></i> Pilih file</div>
+            <input type="file" id="fileInput" accept="image/*" style="display:none;">
+            <img id="previewTarget" class="preview-img" src="https://via.placeholder.com/80?text=preview">
+          </div>
+          <button class="btn-mulai" style="margin:0; width:100%;" id="simpanTargetBtn">Simpan Target</button>
+        `;
+        document.getElementById('uploadTrigger').addEventListener('click', ()=> document.getElementById('fileInput').click());
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => document.getElementById('previewTarget').src = ev.target.result;
+            reader.readAsDataURL(file);
+          }
+        });
+        document.getElementById('simpanTargetBtn').addEventListener('click', ()=>{
+          const nama = document.getElementById('targetNama').value.trim();
+          const nominal = parseInt(document.getElementById('targetNominal').value, 10);
+          const foto = document.getElementById('previewTarget').src === 'https://via.placeholder.com/80?text=preview' ? '' : document.getElementById('previewTarget').src;
+          if (!nama || !nominal || nominal<1000) return alert('Isi dengan benar');
+          const newTarget = {
+            id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+            nama, targetNominal: nominal, terkumpul: 0, foto,
+            transaksi: [], createdAt: Date.now()
+          };
+          targets.push(newTarget);
+          simpanTarget();
+          renderMenu('beranda');
+        });
+      }
+
+      // ======================== TERCAPAI =======================
+      function renderTercapai() {
+        if (achieved.length === 0) { contentDiv.innerHTML = '<div style="text-align:center; margin-top:4rem;color:#7f9bb5;"><i class="fas fa-star" style="font-size:3rem;"></i><p>Belum ada target tercapai.</p></div>'; return; }
+        let html = '<h3>🎯 Tercapai</h3>';
+        achieved.forEach(a => {
+          html += `<div class="target-card">${a.nama} — Rp ${formatRupiah(a.targetNominal)} <br> <small>selesai: ${new Date(a.tercapaiPada).toLocaleDateString()}</small></div>`;
+        });
+        contentDiv.innerHTML = html;
+      }
+
+      function renderGagal() {
+        if (failed.length === 0) { contentDiv.innerHTML = '<div style="text-align:center; margin-top:4rem;color:#7f9bb5;"><i class="fas fa-hourglass-end"></i><p>Tidak ada target gagal.</p></div>'; return; }
+        let html = '<h3>⏳ Gagal (1 tahun)</h3>';
+        failed.forEach(f => {
+          html += `<div class="target-card">${f.nama} — target Rp ${formatRupiah(f.targetNominal)}<br><small>dibuat: ${new Date(f.createdAt).toLocaleDateString()}</small></div>`;
+        });
+        contentDiv.innerHTML = html;
+      }
+
+      // ======================== KALKULATOR =======================
+      function renderKalkulator() {
+        contentDiv.innerHTML = `
+          <div class="qr-container" style="padding:1.5rem;">
+            <h4><i class="fas fa-calculator"></i> Kalkulator</h4>
+            <input id="kalkInput" class="form-control" readonly style="margin:1rem 0; text-align:right; font-size:1.5rem;" value="0">
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+              ${['7','8','9','/','4','5','6','*','1','2','3','-','C','0','=','+'].map(t => `<button class="btn-uang" style="justify-content:center;" onclick="kalkTombol('${t}')">${t}</button>`).join('')}
+            </div>
+          </div>
+        `;
+        window.kalkTombol = (val) => {
+          const inp = document.getElementById('kalkInput');
+          if (val === 'C') inp.value = '0';
+          else if (val === '=') {
+            try { inp.value = eval(inp.value); } catch { inp.value = 'error'; }
+          } else {
+            inp.value = inp.value === '0' ? val : inp.value + val;
+          }
+        };
+      }
+
+      // ======================== EDIT PROFILE =======================
+      function renderEditProfile() {
+        if (profile.name || profile.photo) {
+          contentDiv.innerHTML = `
+            <div class="profile-display">
+              <img src="${profile.photo || 'https://via.placeholder.com/100?text=avatar'}" class="profile-avatar">
+              <div class="profile-nama">${profile.name || '—'}</div>
+              <div class="profile-tgl">${profile.birth || '—'}</div>
+              <button class="btn-edit-kecil" id="editUlangBtn"><i class="fas fa-pencil"></i> Edit ulang</button>
+            </div>
+          `;
+          document.getElementById('editUlangBtn')?.addEventListener('click', ()=> renderFormEdit());
+        } else {
+          renderFormEdit();
+        }
+      }
+      function renderFormEdit() {
+        contentDiv.innerHTML = `
+          <h3>Edit Profile</h3>
+          <div class="form-group"><label>Nama</label><input class="form-control" id="editName" value="${profile.name||''}"></div>
+          <div class="form-group"><label>Tanggal lahir</label><input class="form-control" type="date" id="editBirth" value="${profile.birth||''}"></div>
+          <div class="form-group"><label>Foto</label>
+            <div class="file-upload" id="uploadProfileTrigger"><i class="fas fa-cloud-upload-alt"></i> Pilih foto</div>
+            <input type="file" id="profileFile" accept="image/*" style="display:none;">
+            <img id="previewProfile" class="preview-img" src="${profile.photo||'https://via.placeholder.com/80?text=photo'}">
+          </div>
+          <button class="btn-mulai" id="simpanProfileBtn">Simpan</button>
+        `;
+        document.getElementById('uploadProfileTrigger').addEventListener('click', ()=> document.getElementById('profileFile').click());
+        document.getElementById('profileFile').addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => document.getElementById('previewProfile').src = ev.target.result;
+            reader.readAsDataURL(file);
+          }
+        });
+        document.getElementById('simpanProfileBtn').addEventListener('click', ()=>{
+          profile.name = document.getElementById('editName').value.trim();
+          profile.birth = document.getElementById('editBirth').value;
+          profile.photo = document.getElementById('previewProfile').src === 'https://via.placeholder.com/80?text=photo' ? '' : document.getElementById('previewProfile').src;
+          localStorage.setItem('tabungan_profile', JSON.stringify(profile));
+          renderEditProfile();
+        });
+      }
+
+      // ======================== PROFILE PEMBUAT =======================
+      function renderPembuat() {
+        contentDiv.innerHTML = `
+          <div class="profile-display">
+            <i class="fas fa-user-astronaut" style="font-size:4rem; color:#2f5d8a;"></i>
+            <div class="profile-nama">Azwanz</div>
+            <div style="margin:1rem 0;"><a href="https://wa.me/qr/5OGZY4KAY5Z7I1" target="_blank" class="btn-uang" style="display:inline-block;"><i class="fab fa-whatsapp"></i> HUBUNGI KAMI DI WHATSAPP</a></div>
+            <div><a href="https://t.me/Azwwanz" target="_blank" class="btn-uang" style="display:inline-block;"><i class="fab fa-telegram"></i> HUBUNGI KAMI DI TELEGRAM</a></div>
+          </div>
+        `;
+      }
+
+      // ======================== QR GENERATOR =======================
+      function renderQRGenerator() {
+        contentDiv.innerHTML = `
+          <div class="qr-container">
+            <h4><i class="fas fa-qrcode"></i> Generator QR</h4>
+            <input class="form-control" id="qrText" placeholder="Teks / URL ...">
+            <div class="file-upload" id="uploadWatermark" style="margin:1rem 0;"><i class="fas fa-image"></i> Tambah watermark (opsional)</div>
+            <input type="file" id="watermarkFile" accept="image/*" style="display:none;">
+            <canvas id="qrCanvas" class="qr-canvas" width="300" height="300"></canvas>
+            <button class="btn-download" id="downloadQR"><i class="fas fa-download"></i> Download</button>
+          </div>
+        `;
+        let watermarkDataURL = null;
+        document.getElementById('uploadWatermark').addEventListener('click', ()=> document.getElementById('watermarkFile').click());
+        document.getElementById('watermarkFile').addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => { watermarkDataURL = ev.target.result; generateQRWithWatermark(); };
+            reader.readAsDataURL(file);
+          }
+        });
+        document.getElementById('qrText').addEventListener('input', generateQRWithWatermark);
+        function generateQRWithWatermark() {
+          const text = document.getElementById('qrText').value || 'Tabunganku';
+          const qr = qrcode(0, 'H');
+          qr.addData(text);
+          qr.make();
+          const canvas = document.getElementById('qrCanvas');
+          const ctx = canvas.getContext('2d');
+          const size = 300;
+          const cellSize = size / qr.getModuleCount();
+          canvas.width = canvas.height = size;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0,0,size,size);
+          ctx.fillStyle = '#000000';
+          for (let r=0; r<qr.getModuleCount(); r++) {
+            for (let c=0; c<qr.getModuleCount(); c++) {
+              if (qr.isDark(r,c)) ctx.fillRect(c*cellSize, r*cellSize, cellSize, cellSize);
+            }
+          }
+          // watermark jika ada
+          if (watermarkDataURL) {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              const w = 70, h = 70;
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(size/2, size/2, 30, 0, 2*Math.PI);
+              ctx.clip();
+              ctx.drawImage(img, size/2-30, size/2-30, 60, 60);
+              ctx.restore();
+            };
+            img.src = watermarkDataURL;
+          }
+        }
+        document.getElementById('downloadQR').addEventListener('click', ()=>{
+          const canvas = document.getElementById('qrCanvas');
+          const link = document.createElement('a');
+          link.download = 'qrcode.png';
+          link.href = canvas.toDataURL();
+          link.click();
+        });
+      }
+
+      // ======================== SCAN QR =======================
+      function renderScanQR() {
+        contentDiv.innerHTML = `
+          <div class="qr-container">
+            <h4><i class="fas fa-camera"></i> Scan QR dari gambar</h4>
+            <div class="file-upload" id="scanUpload"><i class="fas fa-upload"></i> Pilih foto QR</div>
+            <input type="file" id="scanFile" accept="image/*" style="display:none;">
+            <canvas id="scanCanvas" style="display:none;"></canvas>
+            <div id="scanResult" style="margin-top:1rem; background:#eef4fa; padding:1rem; border-radius:40px;"></div>
+          </div>
+        `;
+        document.getElementById('scanUpload').addEventListener('click', ()=> document.getElementById('scanFile').click());
+        document.getElementById('scanFile').addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.getElementById('scanCanvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              const imageData = ctx.getImageData(0,0, canvas.width, canvas.height);
+              const code = jsQR(imageData.data, canvas.width, canvas.height);
+              if (code) document.getElementById('scanResult').innerText = 'Isi QR: ' + code.data;
+              else document.getElementById('scanResult').innerText = 'QR tidak terbaca';
+            };
+            img.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // ======================== LONG PRESS POPUP PROFILE =======================
+      const profileMenuItem = document.getElementById('editProfileMenuItem');
+      const popup = document.getElementById('profilePopup');
+      const closePopup = document.getElementById('closePopup');
+      let longPressTimer;
+      profileMenuItem.addEventListener('touchstart', (e) => {
+        longPressTimer = setTimeout(() => {
+          document.getElementById('popupAvatar').src = profile.photo || 'https://via.placeholder.com/50?text=avatar';
+          document.getElementById('popupName').innerText = profile.name || 'Nama belum diisi';
+          document.getElementById('popupBirth').innerText = profile.birth || '—';
+          popup.classList.add('show-popup');
+        }, 500);
+      });
+      profileMenuItem.addEventListener('touchend', () => clearTimeout(longPressTimer));
+      profileMenuItem.addEventListener('touchcancel', () => clearTimeout(longPressTimer));
+      closePopup.addEventListener('click', ()=> popup.classList.remove('show-popup'));
+      // untuk mouse (jika di desktop)
+      profileMenuItem.addEventListener('mousedown', (e) => {
+        longPressTimer = setTimeout(() => {
+          document.getElementById('popupAvatar').src = profile.photo || 'https://via.placeholder.com/50?text=avatar';
+          document.getElementById('popupName').innerText = profile.name || 'Nama belum diisi';
+          document.getElementById('popupBirth').innerText = profile.birth || '—';
+          popup.classList.add('show-popup');
+        }, 500);
+      });
+      profileMenuItem.addEventListener('mouseup', () => clearTimeout(longPressTimer));
+      profileMenuItem.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
+
+      // ======================== CEGAH ZOOM & LAIN =======================
+      // sudah di meta
+    })();
+  </script>
+</body>
+</html>
